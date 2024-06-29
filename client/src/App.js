@@ -5,11 +5,14 @@ import './App.css';
 import Dropdown from './Dropdown';
 import Dropdown2 from './Dropdown2';
 import { Constants } from './Constants';
+import Modal from './Modal';
 
 const App = () => {
 
   const [todos, setTodos] = useState([]);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [newTicketModal, setNewTicketModal] = useState(false);
+  const [task, setTask] = useState('');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     // Fetch data from the Express server
@@ -21,6 +24,45 @@ const App = () => {
   const addTodo = (newTodo) => {
     setTodos([...todos, newTodo]);
   }
+
+  const deleteTask = (task) => {
+    axios.post('http://localhost:5000/delete', task)
+      .then(response => setTodos(response.data))
+      .catch(error => console.error(error));
+  }
+
+  const openNewTicketModal = () => {
+    setNewTicketModal(true);
+  }
+
+  const closeModal = () => {
+    setNewTicketModal(false);
+  }
+
+  const updateTask = (data) => {
+    todos.forEach(element => {
+      if (element.task.includes(data)) {
+        console.log("Suggestion: ", element);
+      }
+    });
+    setTask(data);
+  }
+
+  const addNewTodo = async () => {
+    try {
+      if (task.length > 0) {
+        let data = { task: task, status: "CREATED", description: description };
+        // const response = await axios.post('http://localhost:5000/todos', { task });
+        const response = await axios.post('http://localhost:5000/todos', data);
+        console.log(response);
+        addTodo(response.data);
+        setTask('');
+        setNewTicketModal(false);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
 
   const updateTodo1 = (id, newPriority) => {
@@ -50,11 +92,30 @@ const App = () => {
       })
     .catch(error => console.error(error));
   }
+  
+  function createTicketModal() {
+    return (
+      <div>
+        <button onClick={() => openNewTicketModal()}>+ Create New Task</button>
+        <Modal isOpen={newTicketModal} onClose={() => closeModal()}>
+          <div style={{ margin: '10%', height: 'auto', width: '80%', display: 'grid' }}>
+            <input type="text" placeholder='Subject' value={task} onChange={(e) => updateTask(e.target.value)} />
+            <input type="text" placeholder='Description' value={description} onChange={(e) => setDescription(e.target.value)} />
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+              <button onClick={() => closeModal()}>Cancel</button>
+              <button onClick={addNewTodo}>Add Todo</button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    )
+  }
 
   return (
     <div className='container'>
       <h1>MERN Stack Todo App</h1>
-      <TodoForm onAdd={addTodo} />
+      {/* <TodoForm onAdd={addTodo} /> */}
+      {createTicketModal()}
       <ul>
         {todos.map((todo) => (
         <li key={todo._id}
@@ -64,10 +125,16 @@ const App = () => {
           borderStyle: 'solid',
         }}>
           {console.log(todo?.status)}
-            {todo.task} 
+            {todo.task}{' '}
             {todo?.status}
             <Dropdown onSelect={(option) => updateTodo1(todo._id, option)} />
             <Dropdown2 onSelect={(option) => updateTodo2(todo._id, option)} />
+            <button
+              onClick={() => {
+                console.log('Delete called');
+                deleteTask(todo);
+              }}
+            >Delete</button>
           </li>
         ))}
       </ul>
