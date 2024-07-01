@@ -49,20 +49,41 @@ const App = () => {
   }
 
   const addNewTodo = async () => {
+    let myKeys = task.trim().split(" ");
+    let data = { task: task, status: "OPEN", description: description, keywords: myKeys, ticketId: 1 };
+    
     try {
-      if (task.length > 0) {
-        let data = { task: task, status: "CREATED", description: description };
-        // const response = await axios.post('http://localhost:5000/todos', { task });
+        // Post the new todo
         const response = await axios.post('http://localhost:5000/todos', data);
         console.log(response);
         addTodo(response.data);
         setTask('');
         setNewTicketModal(false);
-      }
+    
+        // Generate all non-empty combinations of myKeys
+        let keywordCombinations = getAllCombinations(myKeys);
+    
+        // Post suggestions for each combination
+        for (let combo of keywordCombinations) {
+            await axios.post('http://localhost:5000/suggestions', { ticketIds: [1], keywords: combo });
+        }
+    
     } catch (error) {
-      console.error(error);
+        console.error("Error:", error);
     }
   };
+
+  function getAllCombinations(arr) {
+    let result = [];
+    let f = function(prefix, arr) {
+        for (let i = 0; i < arr.length; i++) {
+            result.push(prefix.concat(arr[i]));
+            f(prefix.concat(arr[i]), arr.slice(i + 1));
+        }
+    }
+    f([], arr);
+    return result;
+}
 
 
   const updateTodo1 = (id, newPriority) => {

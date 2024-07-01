@@ -21,10 +21,31 @@ const todoSchema = new mongoose.Schema({
   completed: Boolean,
   priority: Number ,
   status : String,
-  description: String
+  description: String,
+  keywords:[]
 });
 
+const suggestionsSchema = new mongoose.Schema({
+  ticketIds : [],
+  keywords : []
+})
+
 const Todo = mongoose.model('Todo', todoSchema);
+const Suggestions = mongoose.model('Suggestions',suggestionsSchema);
+
+
+app.get('/suggestions',async(req,res)=>{
+  const suggestions = await Suggestions.find();
+  res.json(suggestions);
+})
+
+
+app.post('/suggestions',async(req,res)=>{
+   const newSuggestion = new Suggestions(req.body);
+   await newSuggestion.save();
+   res.json(newSuggestion);
+})
+
 
 app.get('/todos', async (req, res) => {
   const todos = await Todo.find();
