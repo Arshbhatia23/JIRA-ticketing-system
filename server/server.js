@@ -26,8 +26,8 @@ const todoSchema = new mongoose.Schema({
 });
 
 const suggestionsSchema = new mongoose.Schema({
-  ticketIds : [],
-  keywords : []
+  keywords: { type: [String], required: true, unique: true },
+  ticketIds: [Number]
 })
 
 const Todo = mongoose.model('Todo', todoSchema);
@@ -36,15 +36,32 @@ const Suggestions = mongoose.model('Suggestions',suggestionsSchema);
 
 app.get('/suggestions',async(req,res)=>{
   const suggestions = await Suggestions.find();
+  console.log("nodemon");
   res.json(suggestions);
 })
 
 
-app.post('/suggestions',async(req,res)=>{
-   const newSuggestion = new Suggestions(req.body);
-   await newSuggestion.save();
-   res.json(newSuggestion);
-})
+
+app.post('/suggestions', async (req, res) => {
+  const { ticketIds, keywords } = req.body;
+
+  try {
+      const existingSuggestion = await Suggestions.findOne({ keywords });
+
+      if (existingSuggestion) {
+          existingSuggestion.ticketIds = [...new Set([...existingSuggestion.ticketIds, ...ticketIds])];
+          await existingSuggestion.save();
+      } else {
+          const newSuggestion = new Suggestions({ keywords, ticketIds });
+          await newSuggestion.save();
+      }
+
+      res.status(200).json({ message: 'Suggestion updated successfully' });
+  } catch (error) {
+      console.error('Error updating suggestion:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 
 app.get('/todos', async (req, res) => {

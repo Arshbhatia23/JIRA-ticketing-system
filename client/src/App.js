@@ -12,6 +12,8 @@ const App = () => {
   const [todos, setTodos] = useState([]);
   const [newTicketModal, setNewTicketModal] = useState(false);
   const [task, setTask] = useState('');
+  const [priority, setPriority] = useState(3);
+
   const [description, setDescription] = useState('');
 
   useEffect(() => {
@@ -50,7 +52,7 @@ const App = () => {
 
   const addNewTodo = async () => {
     let myKeys = task.trim().split(" ");
-    let data = { task: task, status: "OPEN", description: description, keywords: myKeys, ticketId: 1 };
+    let data = { task: task, status: "OPEN", description: description, keywords: myKeys, ticketId: 1 ,priority:priority};
     
     try {
         // Post the new todo
@@ -65,7 +67,7 @@ const App = () => {
     
         // Post suggestions for each combination
         for (let combo of keywordCombinations) {
-            await axios.post('http://localhost:5000/suggestions', { ticketIds: [1], keywords: combo });
+            await axios.post('http://localhost:5000/suggestions', { ticketIds: [2], keywords: combo });
         }
     
     } catch (error) {
@@ -126,6 +128,8 @@ const App = () => {
               <button onClick={() => closeModal()}>Cancel</button>
               <button onClick={addNewTodo}>Add Todo</button>
             </div>
+            <Dropdown onSelect={(option) => setPriority(option)} />
+           
           </div>
         </Modal>
       </div>

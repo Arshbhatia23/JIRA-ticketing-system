@@ -21,7 +21,6 @@ const Dropdown2 = ({ dispatch, onSelect }) => {
 
   const handleSelect = (option) => {
     setIsOpen(false);
-    // dispatch(selectOption(option.value));
     onSelect(option.label); // Pass the selected option to the TodoForm component
   };
 
